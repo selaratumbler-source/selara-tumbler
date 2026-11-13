@@ -87,6 +87,25 @@ footer{border-top:1px solid var(--line);background:#fff;margin-top:40px}
 .tabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 16px}
 .tabs button.active{background:var(--rose);color:#fff;border-color:var(--rose)}
 .hidden{display:none!important}
+/* Tombol pilih warna di publik � pembeli tinggal klik */
+.color-pick { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+.color-pick button {
+  border:1px solid #f3d1e3;
+  background:#fff;
+  color:#2b1220;
+  border-radius:999px;
+  padding:10px 16px;
+  cursor:pointer;
+  min-height:44px;
+  font-size:14px;
+  font-weight:600;
+}
+.color-pick button.active {
+  background:#9d174d;
+  border-color:#9d174d;
+  color:#fff;
+}
+.color-pick button:focus { outline:2px solid #db2777; outline-offset:2px; }
 </style>
 </head>
 <body>
@@ -148,7 +167,11 @@ footer{border-top:1px solid var(--line);background:#fff;margin-top:40px}
       <div id="mPrice" class="price" style="font-size:20px"></div>
       <p id="mDesc" style="color:var(--muted)"></p>
       <div class="opt-label">Ukuran</div><div class="sizes" id="mSizes"></div>
-      <div class="opt-label">Warna</div><div class="sizes" id="mColors"></div>
+      <div>
+  <label style="display:block;font-size:13px;font-weight:700;margin-top:12px">Warna � pilih salah satu</label>
+  <div id="detailColors" class="color-pick"></div>
+  <p id="detailColorNote" class="muted" style="font-size:12px;margin:6px 0 0">Pilih warna yang tersedia.</p>
+</div>
       <label class="toggle"><span><b>Custom Nama</b><br><small>+Rp15.000 per item</small></span><input type="checkbox" id="mCustom" onchange="toggleCustom()"></label>
       <input id="customNameInput" placeholder="Tulis nama untuk custom, contoh: NADIA" maxlength="20">
       <div class="qty"><button onclick="changeQty(-1)">−</button><b id="mQty">1</b><button onclick="changeQty(1)">+</button><span style="color:var(--muted)">item</span></div>
@@ -171,6 +194,7 @@ const COLORS = { "Rose":"#e8a0b8", "Blush Pink":"#fbcfe8", "Putih":"#ffffff", "S
 let ALL = [];
 let cat="Semua", shown=0, cart=JSON.parse(localStorage.getItem("selara_cart")||"[]");
 let cur=null, curImg=0, curSize="", curColor="", curQty=1;
+let selectedColor="";
 const rupiah=n=>"Rp "+Number(n).toLocaleString("id-ID");
 function showProductLoadError(error){const el=document.getElementById("sentinel");const message=error&&error.message?error.message:String(error||"Kesalahan tidak diketahui");el.innerHTML="<div style=\"background:#fff3cd;border:1px solid #ffcc00;border-radius:12px;padding:14px;margin:14px\"><b>Gagal memuat produk:</b> "+message+"<br><button onclick=\"loadProducts()\" style=\"margin-top:8px;padding:10px 16px;border-radius:999px;border:0;background:#db2777;color:#fff;font-weight:700;cursor:pointer\">Coba Lagi</button></div>"}
 async function loadProducts(){try{const cfg=getConfig();if(!cfg.url||!cfg.key)throw new Error("Config Supabase tidak terbaca. Cek /runtime-config.js");if(!supabaseClient)supabaseClient=window.supabase.createClient(cfg.url,cfg.key);const {data,error}=await supabaseClient.from("products_public").select("id,name,category_name,description,price,sizes,colors,custom_fee,image_url").order("created_at");if(error)throw error;ALL=(data||[]).map(p=>({id:p.id,name:p.name,cat:p.category_name,price:p.price,desc:p.description||"",sizes:p.sizes||[],colors:p.colors||[],fee:p.custom_fee,image:p.image_url||"",images:p.image_url?[p.image_url]:[]}));render(true);updateBadge()}catch(e){console.error(e);showProductLoadError(e)}}
@@ -180,15 +204,51 @@ function applyFilters(){render(true)} function resetFilters(){document.getElemen
 function setCat(c,el){cat=c;document.querySelectorAll("#chips .chip").forEach(b=>b.classList.toggle("active",b.dataset.cat===c));if(el)el.classList.add("active");render(true)}
 function toggleFilter(){document.getElementById("filterPanel").classList.toggle("hidden")}
 function showView(v){["shop","cart","faq"].forEach(x=>document.getElementById("view-"+x).classList.toggle("hidden",x!==v));["shop","cart","faq"].forEach(x=>document.getElementById("tab-"+x).classList.toggle("active",x===v));if(v==="cart")renderCart();window.scrollTo({top:0})}
-function openModal(id){cur=ALL.find(p=>p.id===id);curImg=0;curSize=cur.sizes[0];curColor=(Array.isArray(cur.colors)&&cur.colors.length?cur.colors[0]:"Warna Standar");curQty=1;document.getElementById("mQty").textContent="1";document.getElementById("mCustom").checked=false;document.getElementById("customNameInput").style.display="none";document.getElementById("customNameInput").value="";paintModal();document.getElementById("overlay").classList.add("open");document.body.style.overflow="hidden"}
-function renderColorOptions(){const colors=Array.isArray(cur.colors)?cur.colors.filter(Boolean):[];const options=colors.length?colors:["Warna Standar"];const box=document.getElementById("mColors");box.innerHTML="";options.forEach(color=>{const button=document.createElement("button");button.type="button";button.className="size-btn"+(color===curColor?" active":"");button.textContent=color;button.onclick=()=>{curColor=color;paintModal()};box.appendChild(button)})}
-function paintModal(){document.getElementById("mImg").src=cur.images[curImg]||"";document.getElementById("mName").textContent=cur.name;document.getElementById("mPrice").textContent=rupiah(cur.price);document.getElementById("mDesc").textContent=cur.desc;document.getElementById("mSizes").innerHTML=cur.sizes.map(s=>`<button class="size-btn ${s===curSize?"active":""}" onclick="curSize='${s}';paintModal()">${s}</button>`).join("");renderColorOptions();const fee=document.getElementById("mCustom").checked?CUSTOM_FEE:0;document.getElementById("mTotal").textContent=rupiah((cur.price+fee)*curQty)}
+function openModal(id){
+  cur=ALL.find(p=>p.id===id);var product=cur;curImg=0;curSize=cur.sizes[0];curColor="";selectedColor="";curQty=1;
+  document.getElementById("mQty").textContent="1";document.getElementById("mCustom").checked=false;document.getElementById("customNameInput").style.display="none";document.getElementById("customNameInput").value="";
+  // === WARNA PUBLIK: TINGGAL PILIH DARI product.colors ===
+  var selectedColor = "";
+  var colorsBox = document.getElementById("detailColors");
+  var colorNote = document.getElementById("detailColorNote");
+  if(colorsBox){
+    colorsBox.innerHTML = "";
+    var colors = (product.colors || product.warna || []);
+    // Kalau colors masih string "Merah, Hitam, Biru", split jadi array
+    if(typeof colors === "string"){
+      colors = colors.split(",").map(function(s){ return s.trim(); }).filter(Boolean);
+    }
+    if(!colors || colors.length === 0){
+      colors = ["Warna Standar"];
+    }
+    selectedColor = colors[0];
+    colors.forEach(function(c, idx){
+      var b = document.createElement("button");
+      b.type = "button";
+      b.textContent = c;
+      if(idx === 0) b.classList.add("active");
+      b.onclick = function(){
+        selectedColor = c;
+        var all = colorsBox.querySelectorAll("button");
+        all.forEach(function(x){ x.classList.remove("active"); });
+        b.classList.add("active");
+        // Simpan ke variabel global biar checkout bisa pakai
+        window.__SELECTED_COLOR__ = c;
+      };
+      colorsBox.appendChild(b);
+    });
+    window.__SELECTED_COLOR__ = selectedColor;
+    if(colorNote) colorNote.textContent = "Dipilih: " + selectedColor;
+  }
+  paintModal();document.getElementById("overlay").classList.add("open");document.body.style.overflow="hidden"
+}
+function paintModal(){document.getElementById("mImg").src=cur.images[curImg]||"";document.getElementById("mName").textContent=cur.name;document.getElementById("mPrice").textContent=rupiah(cur.price);document.getElementById("mDesc").textContent=cur.desc;document.getElementById("mSizes").innerHTML=cur.sizes.map(s=>`<button class="size-btn ${s===curSize?"active":""}" onclick="curSize='${s}';paintModal()">${s}</button>`).join("");const fee=document.getElementById("mCustom").checked?CUSTOM_FEE:0;document.getElementById("mTotal").textContent=rupiah((cur.price+fee)*curQty)}
 function prevImg(){curImg=(curImg-1+cur.images.length)%cur.images.length;paintModal()} function nextImg(){curImg=(curImg+1)%cur.images.length;paintModal()}
 function toggleCustom(){document.getElementById("customNameInput").style.display=document.getElementById("mCustom").checked?"block":"none";paintModal()}
 function changeQty(d){curQty=Math.max(1,curQty+d);document.getElementById("mQty").textContent=curQty;paintModal()}
 function closeModal(){document.getElementById("overlay").classList.remove("open");document.body.style.overflow=""}
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal()});
-function addToCart(){const fee=document.getElementById("mCustom").checked?CUSTOM_FEE:0;const cname=document.getElementById("mCustom").checked?(document.getElementById("customNameInput").value.trim()||"-"):"";cart.push({id:cur.id,name:cur.name,price:cur.price,image:cur.image,color:curColor,size:curSize,qty:curQty,custom:cname,fee});localStorage.setItem("selara_cart",JSON.stringify(cart));updateBadge();closeModal();showView("cart")}
+function addToCart(){var warnaDipilih = window.__SELECTED_COLOR__ || selectedColor || "Warna Standar";const fee=document.getElementById("mCustom").checked?CUSTOM_FEE:0;const cname=document.getElementById("mCustom").checked?(document.getElementById("customNameInput").value.trim()||"-"):"";cart.push({id:cur.id,name:cur.name,price:cur.price,image:cur.image,color:warnaDipilih,size:curSize,qty:curQty,custom:cname,fee});localStorage.setItem("selara_cart",JSON.stringify(cart));updateBadge();closeModal();showView("cart")}
 function updateBadge(){document.getElementById("cartBadge").textContent=cart.reduce((a,b)=>a+b.qty,0)}
 function renderCart(){const el=document.getElementById("cartList");if(!cart.length){el.innerHTML=`<div class="empty">Keranjang masih kosong.<br><button class="chip" onclick="showView('shop')" style="margin-top:12px">Lihat Katalog</button></div>`;document.getElementById("cartSummary").innerHTML="";return}el.innerHTML=cart.map((it,i)=>`<div class="cart-item"><img src="${it.image}"><div class="grow"><h4>${it.name}</h4><p>Warna: ${it.color} • Ukuran: ${it.size}${it.custom?` • Custom Nama: ${it.custom}`:""}</p><div class="qty"><button onclick="chg(${i},-1)">−</button><b>${it.qty}</b><button onclick="chg(${i},1)">+</button></div></div><div style="text-align:right"><b>${rupiah((it.price+it.fee)*it.qty)}</b><br><button onclick="del(${i})" style="border:0;background:none;color:var(--magenta);margin-top:8px">Hapus</button></div></div>`).join("");const sub=cart.reduce((a,b)=>a+b.price*b.qty,0);const cf=cart.reduce((a,b)=>a+b.fee*b.qty,0);document.getElementById("cartSummary").innerHTML=`<div style="background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px"><div class="row"><span>Subtotal</span><b>${rupiah(sub)}</b></div><div class="row"><span>Biaya Custom</span><b>${rupiah(cf)}</b></div><div class="row total"><span>Total</span><span>${rupiah(sub+cf)}</span></div><button class="btn-primary" style="margin-top:12px" onclick="checkout()">Pesan Sekarang</button></div>`}
 function chg(i,d){cart[i].qty=Math.max(1,cart[i].qty+d);localStorage.setItem("selara_cart",JSON.stringify(cart));updateBadge();renderCart()}
