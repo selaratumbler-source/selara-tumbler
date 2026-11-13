@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Selara Tumbler — Tumbler Pilihan, Dibuat Khusus Untukmu</title>
+<title>Selara Tumbler - Tumbler Pilihan, Dibuat Khusus Untukmu</title>
 <style>
 :root{--rose:#9d174d;--magenta:#db2777;--pink:#fbcfe8;--blush:#fdf2f8;--ink:#2b1220;--muted:#7a5a6b;--line:#f3d1e3;--white:#fff;--radius:18px}
 *{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--blush);color:var(--ink)}
 h1,h2,h3,.serif{font-family:Georgia,'Times New Roman',serif}
 a{color:inherit;text-decoration:none} button{font:inherit;cursor:pointer}
-/* HEADER — HANYA LOGO + KERANJANG YANG STICKY */
+/* HEADER */
 header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
 .header-inner{max-width:1120px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .logo{display:flex;align-items:center;gap:10px}
@@ -23,7 +23,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 main{max-width:1120px;margin:0 auto;padding:0 16px 40px}
 .hero{padding:22px 4px 10px}.hero h1{font-size:30px;line-height:1.15;margin:0;color:var(--rose)}
 .hero p{color:var(--muted);margin:8px 0 0}
-/* SEARCH + FILTER — STATIC, TIDAK STICKY */
+/* SEARCH + FILTER */
 .catalog-bar{display:flex;gap:10px;margin:18px 0 10px}
 .search-box{flex:1;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:12px 16px}
 .search-box input{border:0;outline:0;width:100%;font-size:15px;background:transparent}
@@ -43,7 +43,7 @@ main{max-width:1120px;margin:0 auto;padding:0 16px 40px}
 .sentinel{padding:22px;text-align:center;color:var(--muted)}
 .skeleton{height:180px;background:linear-gradient(90deg,#fbeaf3,#fff,#fbeaf3);background-size:200% 100%;animation:sh 1s infinite;border-radius:var(--radius)}
 @keyframes sh{to{background-position:-200% 0}}
-/* MODAL — TENGAH, TIDAK KEPOTONG */
+/* MODAL */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;padding:16px;z-index:100;overflow-y:auto}
 .overlay.open{display:flex}
 .modal{background:#fff;width:100%;max-width:760px;max-height:88vh;max-height:calc(100vh - 48px);overflow-y:auto;overflow-x:hidden;border-radius:20px;position:relative;padding-bottom:24px}
@@ -87,24 +87,10 @@ footer{border-top:1px solid var(--line);background:#fff;margin-top:40px}
 .tabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 16px}
 .tabs button.active{background:var(--rose);color:#fff;border-color:var(--rose)}
 .hidden{display:none!important}
-/* Tombol pilih warna di publik � pembeli tinggal klik */
+/* Tombol pilih warna */
 .color-pick { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
-.color-pick button {
-  border:1px solid #f3d1e3;
-  background:#fff;
-  color:#2b1220;
-  border-radius:999px;
-  padding:10px 16px;
-  cursor:pointer;
-  min-height:44px;
-  font-size:14px;
-  font-weight:600;
-}
-.color-pick button.active {
-  background:#9d174d;
-  border-color:#9d174d;
-  color:#fff;
-}
+.color-pick button { border:1px solid #f3d1e3; background:#fff; color:#2b1220; border-radius:999px; padding:10px 16px; cursor:pointer; min-height:44px; font-size:14px; font-weight:600; }
+.color-pick button.active { background:#9d174d; border-color:#9d174d; color:#fff; }
 .color-pick button:focus { outline:2px solid #db2777; outline-offset:2px; }
 </style>
 </head>
@@ -117,12 +103,11 @@ footer{border-top:1px solid var(--line);background:#fff;margin-top:40px}
 <main>
   <div class="tabs"><button id="tab-shop" class="active" onclick="showView('shop')">Katalog</button><button id="tab-cart" onclick="showView('cart')">Keranjang</button><button id="tab-faq" onclick="showView('faq')">FAQ</button></div>
 
-  <!-- SHOP -->
   <section id="view-shop">
     <div class="hero"><h1>Tumbler pilihan, dibuat khusus untukmu.</h1><p>Temukan tumbler dan tempat makan favoritmu, lalu pesan dengan mudah.</p></div>
     <div class="catalog-bar">
       <label class="search-box">🔍 <input id="searchInput" placeholder="Cari tumbler..." oninput="applyFilters()"></label>
-      <button class="filter-btn" onclick="toggleFilter()">⚙ Filter</button>
+      <button class="filter-btn" onclick="toggleFilter()">⚙️ Filter</button>
     </div>
     <div id="filterPanel" class="hidden" style="background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px">
       <b>Filter</b><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
@@ -139,10 +124,8 @@ footer{border-top:1px solid var(--line);background:#fff;margin-top:40px}
     <div id="sentinel" class="sentinel">Memuat produk...</div>
   </section>
 
-  <!-- CART -->
   <section id="view-cart" class="hidden"><div class="cart-wrap"><h2 class="serif" style="color:var(--rose)">Keranjang</h2><div id="cartList"></div><div id="cartSummary"></div></div></section>
 
-  <!-- FAQ -->
   <section id="view-faq" class="hidden"><div class="faq"><h2 class="serif" style="color:var(--rose)">FAQ</h2>
     <details open><summary>Bagaimana cara memesan?</summary><p>Pilih produk, atur warna, ukuran, dan jumlah, lalu klik Pesan Sekarang.</p></details>
     <details><summary>Apakah bisa tambah nama?</summary><p>Ya, aktifkan Custom Nama di detail produk. Biaya tambahan Rp15.000 per item.</p></details>
@@ -157,9 +140,8 @@ footer{border-top:1px solid var(--line);background:#fff;margin-top:40px}
   <div><h4>Kategori</h4><a href="#" onclick="setCat('Tumbler',null);showView('shop')">Tumbler</a><a href="#" onclick="setCat('Tempat Makan',null);showView('shop')">Tempat Makan</a></div>
 </div><div class="copy">© 2026 Selara Tumbler. All rights reserved.</div></footer>
 
-<!-- MODAL DETAIL -->
 <div class="overlay" id="overlay" onclick="if(event.target===this)closeModal()"><div class="modal" role="dialog" aria-modal="true">
-  <div class="modal-head"><button class="close" onclick="closeModal()">×</button></div>
+  <div class="modal-head"><button class="close" onclick="closeModal()">✕</button></div>
   <div class="modal-grid">
     <div><div class="gallery"><img id="mImg" src="" alt=""><div class="gallery-nav"><button onclick="prevImg()">‹ Sebelumnya</button><button onclick="nextImg()">Berikutnya ›</button></div></div></div>
     <div>
@@ -168,7 +150,7 @@ footer{border-top:1px solid var(--line);background:#fff;margin-top:40px}
       <p id="mDesc" style="color:var(--muted)"></p>
       <div class="opt-label">Ukuran</div><div class="sizes" id="mSizes"></div>
       <div>
-  <label style="display:block;font-size:13px;font-weight:700;margin-top:12px">Warna � pilih salah satu</label>
+  <label style="display:block;font-size:13px;font-weight:700;margin-top:12px">Warna - pilih salah satu</label>
   <div id="detailColors" class="color-pick"></div>
   <p id="detailColorNote" class="muted" style="font-size:12px;margin:6px 0 0">Pilih warna yang tersedia.</p>
 </div>
@@ -183,7 +165,7 @@ footer{border-top:1px solid var(--line);background:#fff;margin-top:40px}
 <script src="/runtime-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// ===== CONFIG — CODEX: isi dari ENV, JANGAN tampilkan di UI =====
+// ===== CONFIG =====
 function getConfig(){
   var c1=window.SELARA_CONFIG||null;var c2=window.__SELARA_CONFIG__||window.SELARA_CONFIG__||null;var c=c1||c2||{};
   return {url:c.supabaseUrl||c.SUPABASE_URL||c.supabase_url||"",key:c.supabaseAnonKey||c.SUPABASE_ANON_KEY||c.supabase_anon_key||c.anonKey||"",wa:c.waNumber||c.WA_NUMBER||c.wa_number||""};
@@ -192,7 +174,17 @@ const CONFIG=getConfig();const WA_NUMBER=CONFIG.wa;let supabaseClient=null;
 const CUSTOM_FEE = 15000;
 const COLORS = { "Rose":"#e8a0b8", "Blush Pink":"#fbcfe8", "Putih":"#ffffff", "Sage":"#a8b8a0", "Hitam":"#222222", "Cream":"#f5e8d5" };
 let ALL = [];
-let cat="Semua", shown=0, cart=JSON.parse(localStorage.getItem("selara_cart")||"[]");
+let cat="Semua", shown=0;
+// PENGAMAN LOCALSTORAGE: Cegah error jika data korup
+let cart=[];
+try {
+  cart = JSON.parse(localStorage.getItem("selara_cart")||"[]");
+  if (!Array.isArray(cart)) cart = [];
+} catch(e) {
+  localStorage.removeItem("selara_cart");
+  cart = [];
+}
+
 let cur=null, curImg=0, curSize="", curColor="", curQty=1;
 let selectedColor="";
 const rupiah=n=>"Rp "+Number(n).toLocaleString("id-ID");
@@ -207,20 +199,14 @@ function showView(v){["shop","cart","faq"].forEach(x=>document.getElementById("v
 function openModal(id){
   cur=ALL.find(p=>p.id===id);var product=cur;curImg=0;curSize=cur.sizes[0];curColor="";selectedColor="";curQty=1;
   document.getElementById("mQty").textContent="1";document.getElementById("mCustom").checked=false;document.getElementById("customNameInput").style.display="none";document.getElementById("customNameInput").value="";
-  // === WARNA PUBLIK: TINGGAL PILIH DARI product.colors ===
   var selectedColor = "";
   var colorsBox = document.getElementById("detailColors");
   var colorNote = document.getElementById("detailColorNote");
   if(colorsBox){
     colorsBox.innerHTML = "";
     var colors = (product.colors || product.warna || []);
-    // Kalau colors masih string "Merah, Hitam, Biru", split jadi array
-    if(typeof colors === "string"){
-      colors = colors.split(",").map(function(s){ return s.trim(); }).filter(Boolean);
-    }
-    if(!colors || colors.length === 0){
-      colors = ["Warna Standar"];
-    }
+    if(typeof colors === "string"){ colors = colors.split(",").map(function(s){ return s.trim(); }).filter(Boolean); }
+    if(!colors || colors.length === 0){ colors = ["Warna Standar"]; }
     selectedColor = colors[0];
     colors.forEach(function(c, idx){
       var b = document.createElement("button");
@@ -232,7 +218,6 @@ function openModal(id){
         var all = colorsBox.querySelectorAll("button");
         all.forEach(function(x){ x.classList.remove("active"); });
         b.classList.add("active");
-        // Simpan ke variabel global biar checkout bisa pakai
         window.__SELECTED_COLOR__ = c;
       };
       colorsBox.appendChild(b);
@@ -253,7 +238,7 @@ function updateBadge(){document.getElementById("cartBadge").textContent=cart.red
 function renderCart(){const el=document.getElementById("cartList");if(!cart.length){el.innerHTML=`<div class="empty">Keranjang masih kosong.<br><button class="chip" onclick="showView('shop')" style="margin-top:12px">Lihat Katalog</button></div>`;document.getElementById("cartSummary").innerHTML="";return}el.innerHTML=cart.map((it,i)=>`<div class="cart-item"><img src="${it.image}"><div class="grow"><h4>${it.name}</h4><p>Warna: ${it.color} • Ukuran: ${it.size}${it.custom?` • Custom Nama: ${it.custom}`:""}</p><div class="qty"><button onclick="chg(${i},-1)">−</button><b>${it.qty}</b><button onclick="chg(${i},1)">+</button></div></div><div style="text-align:right"><b>${rupiah((it.price+it.fee)*it.qty)}</b><br><button onclick="del(${i})" style="border:0;background:none;color:var(--magenta);margin-top:8px">Hapus</button></div></div>`).join("");const sub=cart.reduce((a,b)=>a+b.price*b.qty,0);const cf=cart.reduce((a,b)=>a+b.fee*b.qty,0);document.getElementById("cartSummary").innerHTML=`<div style="background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px"><div class="row"><span>Subtotal</span><b>${rupiah(sub)}</b></div><div class="row"><span>Biaya Custom</span><b>${rupiah(cf)}</b></div><div class="row total"><span>Total</span><span>${rupiah(sub+cf)}</span></div><button class="btn-primary" style="margin-top:12px" onclick="checkout()">Pesan Sekarang</button></div>`}
 function chg(i,d){cart[i].qty=Math.max(1,cart[i].qty+d);localStorage.setItem("selara_cart",JSON.stringify(cart));updateBadge();renderCart()}
 function del(i){cart.splice(i,1);localStorage.setItem("selara_cart",JSON.stringify(cart));updateBadge();renderCart()}
-function checkout(){if(!cart.length)return;let lines=["Halo Selara Tumbler, saya mau pesan:",""];cart.forEach((it,i)=>{lines.push(`${i+1}. ${it.name}`);lines.push(`   Warna: ${it.color} | Ukuran: ${it.size} | Qty: ${it.qty}`);if(it.custom)lines.push(`   Custom Nama: ${it.custom} (+${rupiah(it.fee)})`);lines.push(`   Subtotal: ${rupiah((it.price+it.fee)*it.qty)}`);lines.push("")});const total=cart.reduce((a,b)=>a+(b.price+b.fee)*b.qty,0);lines.push(`Total: ${rupiah(total)}`);lines.push("Mohon konfirmasi ya, terima kasih.");const msg=encodeURIComponent(lines.join("\n"));const num=(typeof WA_NUMBER!=="undefined"&&WA_NUMBER)?WA_NUMBER:"";if(!num){alert("Nomor WA Admin belum diatur di ENV (WA_NUMBER). Codex: isi dari Netlify Env Vars.");return}window.open(`https://wa.me/${num}?text=${msg}`,"_blank")}
+function checkout(){if(!cart.length)return;let lines=["Halo Selara Tumbler, saya mau pesan:",""];cart.forEach((it,i)=>{lines.push(`${i+1}. ${it.name}`);lines.push(`   Warna: ${it.color} | Ukuran: ${it.size} | Qty: ${it.qty}`);if(it.custom)lines.push(`   Custom Nama: ${it.custom} (+${rupiah(it.fee)})`);lines.push(`   Subtotal: ${rupiah((it.price+it.fee)*it.qty)}`);lines.push("")});const total=cart.reduce((a,b)=>a+(b.price+b.fee)*b.qty,0);lines.push(`Total: ${rupiah(total)}`);lines.push("Mohon konfirmasi ya, terima kasih.");const msg=encodeURIComponent(lines.join("\n"));const num=(typeof WA_NUMBER!=="undefined"&&WA_NUMBER)?WA_NUMBER:"";if(!num){alert("Nomor WA Admin belum diatur di ENV (WA_NUMBER).");return}window.open(`https://wa.me/${num}?text=${msg}`,"_blank")}
 const obs=new IntersectionObserver(es=>{if(es[0].isIntersecting){const list=filtered();if(shown<list.length){document.getElementById("sentinel").innerHTML=`<div class="skeleton"></div>`;setTimeout(()=>render(false),400)}}},{rootMargin:"200px"});
 obs.observe(document.getElementById("sentinel"));
 loadProducts();updateBadge();
