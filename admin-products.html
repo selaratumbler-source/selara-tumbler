@@ -24,12 +24,18 @@ button{font:inherit;cursor:pointer;border:none;background:none}
 
 /* PRODUCT LIST */
 .list{padding:0 20px}
-.p-card{background:#fff;border-radius:14px;padding:12px;margin-bottom:10px;border:1px solid var(--line);display:flex;gap:12px;align-items:center}
+.p-card{background:#fff;border-radius:14px;padding:12px;margin-bottom:10px;border:1px solid var(--line);display:flex;gap:12px;align-items:center;position:relative}
 .p-img{width:60px;height:60px;border-radius:10px;background:var(--blush);object-fit:cover}
 .p-info{flex:1}
-.p-name{font-size:13px;font-weight:800;margin-bottom:2px}
+.p-name{font-size:13px;font-weight:800;margin-bottom:2px;padding-right:40px}
 .p-price{font-size:12px;font-weight:800;color:var(--rose)}
 .p-stats{font-size:10px;color:var(--muted);margin-top:4px}
+
+/* ACTION BUTTONS (EDIT & DELETE) */
+.p-actions{position:absolute;top:12px;right:12px;display:flex;gap:6px}
+.btn-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;background:var(--blush);border:1px solid var(--line)}
+.btn-edit{color:var(--magenta)}
+.btn-del{color:#dc2626}
 
 /* MODAL FORM */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:50;display:none;align-items:flex-end;justify-content:center}
@@ -65,7 +71,7 @@ button{font:inherit;cursor:pointer;border:none;background:none}
 
   <!-- ACTIONS -->
   <div class="actions">
-    <input type="text" class="search-box" placeholder="Cari produk...">
+    <input type="text" class="search-box" id="searchInput" placeholder="Cari produk..." oninput="renderList()">
     <button class="btn-add" onclick="openModal()">＋ Tambah</button>
   </div>
 
@@ -76,15 +82,17 @@ button{font:inherit;cursor:pointer;border:none;background:none}
     </div>
   </div>
 
-  <!-- MODAL FORM TAMBAH PRODUK -->
+  <!-- MODAL FORM TAMBAH/EDIT PRODUK -->
   <div class="overlay" id="modalOverlay">
     <div class="modal">
       <div class="modal-head">
-        <h2>Tambah Produk</h2>
+        <h2 id="modalTitle">Tambah Produk</h2>
         <button class="close" onclick="closeModal()">✕</button>
       </div>
 
       <form id="productForm">
+        <input type="hidden" id="pId"> <!-- ID untuk Edit -->
+        
         <div class="form-group">
           <label class="form-label">Nama Produk *</label>
           <input type="text" class="form-input" id="pName" placeholder="cth: Selara Blush" required>
@@ -128,7 +136,7 @@ button{font:inherit;cursor:pointer;border:none;background:none}
           <input type="url" class="form-input" id="pImage" placeholder="https://...">
         </div>
 
-        <button type="submit" class="btn-save">Simpan Produk</button>
+        <button type="submit" class="btn-save" id="btnSave">Simpan Produk</button>
       </form>
     </div>
   </div>
@@ -153,61 +161,69 @@ button{font:inherit;cursor:pointer;border:none;background:none}
   }
   const CONFIG = getConfig();
   let supabaseClient = null;
-
   if (CONFIG.url && CONFIG.key) {
     supabaseClient = window.supabase.createClient(CONFIG.url, CONFIG.key);
   }
 
+  let allProducts = [];
   const fmt = (n) => 'Rp ' + Number(n).toLocaleString('id-ID');
 
   // ===== FUNGSI AMBIL PRODUK =====
   async function loadProducts() {
     const listEl = document.getElementById('productList');
     if (!supabaseClient) {
-      listEl.innerHTML = '<div style="text-align:center; padding:20px; color:red; font-size:12px;">Gagal konek Supabase. Cek runtime-config.js</div>';
+      listEl.innerHTML = '<div style="text-align:center; padding:20px; color:red; font-size:12px;">Gagal konek Supabase.</div>';
       return;
     }
-
     try {
-      const { data, error } = await supabaseClient
-        .from('products')
-        .select('*')
-        .order('created_at', { ascending: false });
-
+      const { data, error } = await supabaseClient.from('products').select('*').order('created_at', { ascending: false });
       if (error) throw error;
-
-      if (!data || data.length === 0) {
-        listEl.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted); font-size:12px;">Belum ada produk. Klik Tambah untuk mulai.</div>';
-        return;
-      }
-
-      listEl.innerHTML = data.map(p => `
-        <div class="p-card">
-          <img src="${p.image_url || 'https://via.placeholder.com/60x60/fbcfe8/9d174d?text=Foto'}" class="p-img" alt="${p.name}">
-          <div class="p-info">
-            <div class="p-name">${p.name}</div>
-            <div class="p-price">${fmt(p.price)}</div>
-            <div class="p-stats">${p.category_name || 'Tanpa Kategori'}</div>
-          </div>
-        </div>
-      `).join('');
-
+      allProducts = data || [];
+      renderList();
     } catch (err) {
       console.error(err);
       listEl.innerHTML = `<div style="text-align:center; padding:20px; color:red; font-size:12px;">Error: ${err.message}</div>`;
     }
   }
 
-  // ===== FUNGSI SIMPAN PRODUK =====
+  function renderList() {
+    const listEl = document.getElementById('productList');
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    
+    const filtered = allProducts.filter(p => p.name.toLowerCase().includes(search));
+
+    if (filtered.length === 0) {
+      listEl.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted); font-size:12px;">Produk tidak ditemukan.</div>';
+      return;
+    }
+
+    listEl.innerHTML = filtered.map(p => `
+      <div class="p-card">
+        <img src="${p.image_url || 'https://via.placeholder.com/60x60/fbcfe8/9d174d?text=Foto'}" class="p-img" alt="${p.name}">
+        <div class="p-info">
+          <div class="p-name">${p.name}</div>
+          <div class="p-price">${fmt(p.price)}</div>
+          <div class="p-stats">${p.category_name || 'Tanpa Kategori'}</div>
+        </div>
+        <div class="p-actions">
+          <button class="btn-icon btn-edit" onclick="editProduct('${p.id}')">✏️</button>
+          <button class="btn-icon btn-del" onclick="deleteProduct('${p.id}')">🗑️</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ===== FUNGSI SIMPAN (TAMBAH / EDIT) =====
   document.getElementById('productForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!supabaseClient) return alert('Supabase belum terhubung!');
 
-    const btn = e.target.querySelector('.btn-save');
+    const btn = document.getElementById('btnSave');
     btn.innerText = 'Menyimpan...';
     btn.disabled = true;
 
-    const newProduct = {
+    const id = document.getElementById('pId').value;
+    const productData = {
       name: document.getElementById('pName').value,
       category_name: document.getElementById('pCategory').value,
       price: Number(document.getElementById('pPrice').value),
@@ -218,11 +234,20 @@ button{font:inherit;cursor:pointer;border:none;background:none}
     };
 
     try {
-      const { error } = await supabaseClient.from('products').insert([newProduct]);
+      let error;
+      if (id) {
+        // EDIT PRODUK
+        const res = await supabaseClient.from('products').update(productData).eq('id', id);
+        error = res.error;
+      } else {
+        // TAMBAH PRODUK BARU
+        const res = await supabaseClient.from('products').insert([productData]);
+        error = res.error;
+      }
+      
       if (error) throw error;
 
-      alert('Produk berhasil ditambahkan!');
-      document.getElementById('productForm').reset();
+      alert(id ? 'Produk berhasil diupdate!' : 'Produk berhasil ditambahkan!');
       closeModal();
       loadProducts(); // Refresh list
 
@@ -235,8 +260,48 @@ button{font:inherit;cursor:pointer;border:none;background:none}
     }
   });
 
-  function openModal() { document.getElementById('modalOverlay').classList.add('open'); }
-  function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+  // ===== FUNGSI EDIT =====
+  function editProduct(id) {
+    const p = allProducts.find(item => item.id === id);
+    if (!p) return;
+
+    document.getElementById('modalTitle').innerText = 'Edit Produk';
+    document.getElementById('pId').value = p.id;
+    document.getElementById('pName').value = p.name;
+    document.getElementById('pCategory').value = p.category_name || '';
+    document.getElementById('pPrice').value = p.price;
+    document.getElementById('pCost').value = p.cost_price;
+    document.getElementById('pCustom').checked = p.allow_custom;
+    document.getElementById('pDesc').value = p.description || '';
+    document.getElementById('pImage').value = p.image_url || '';
+
+    openModal();
+  }
+
+  // ===== FUNGSI HAPUS =====
+  async function deleteProduct(id) {
+    if (!confirm('Yakin mau hapus produk ini? Data akan hilang permanen.')) return;
+
+    try {
+      const { error } = await supabaseClient.from('products').delete().eq('id', id);
+      if (error) throw error;
+      alert('Produk berhasil dihapus!');
+      loadProducts();
+    } catch (err) {
+      console.error(err);
+      alert('Gagal menghapus: ' + err.message);
+    }
+  }
+
+  function openModal() { 
+    document.getElementById('modalOverlay').classList.add('open'); 
+  }
+  function closeModal() { 
+    document.getElementById('modalOverlay').classList.remove('open'); 
+    document.getElementById('productForm').reset();
+    document.getElementById('pId').value = '';
+    document.getElementById('modalTitle').innerText = 'Tambah Produk';
+  }
 
   // Init
   loadProducts();
