@@ -1,0 +1,9 @@
+{
+  "name": "selara-tumbler",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-config.mjs"
+  },
+  "dependencies": {}
+}

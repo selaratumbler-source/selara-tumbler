@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin — Selara Tumbler</title>
+<style>
+:root{--rose:#9d174d;--magenta:#db2777;--pink:#fbcfe8;--blush:#fdf2f8;--line:#f3d1e3;--muted:#7a5a6b}
+*{box-sizing:border-box}
+html,body{max-width:100%;overflow-x:hidden}
+body{margin:0;font-family:system-ui,Arial,sans-serif;background:var(--blush);color:#2b1220}
+h1,h2{font-family:Georgia,serif;color:var(--rose)}
+.wrap{width:100%;max-width:1120px;margin:0 auto;padding:18px}
+.card{min-width:0;background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+img,table,input,select,textarea{max-width:100%}
+input,select,textarea{width:100%;padding:11px;border:1px solid var(--line);border-radius:12px;margin-top:6px;font:inherit}
+label{font-size:13px;font-weight:700}
+.btn{background:var(--magenta);color:#fff;border:0;border-radius:999px;padding:12px 18px;font-weight:700;cursor:pointer}
+.btn2{border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 14px;cursor:pointer}
+.grid4{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.stat b{font-size:22px;color:var(--rose);display:block;overflow-wrap:anywhere}
+.pill{border-radius:999px;padding:5px 10px;font-size:12px;background:#fbeaf3;color:var(--rose);border:0;cursor:pointer}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:10px;border-bottom:1px solid var(--line);text-align:left}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.tabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 14px;cursor:pointer;flex:0 0 auto}
+.tabs button.active{background:var(--rose);color:#fff}
+.hidden{display:none!important}
+.bars{display:flex;align-items:flex-end;gap:10px;height:110px;min-height:110px}
+.bars div{flex:1;min-width:0;background:var(--magenta);border-radius:8px 8px 0 0;min-height:8px}
+.grey{opacity:.55;filter:grayscale(.3)}
+@media(min-width:800px){.grid4{grid-template-columns:repeat(4,minmax(0,1fr))}.stat b{font-size:26px}}
+@media(max-width:719px){
+ .wrap{padding:12px}
+ #adminView>div:first-child{display:flex;flex-wrap:wrap;align-items:center;gap:8px;max-width:100%}
+ #adminView>div:first-child h1{font-size:24px;margin:4px 0;flex:1 1 100%}
+ #adminView>div:first-child>div{display:flex;flex-wrap:wrap;gap:8px;max-width:100%}
+ .tabs{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scrollbar-width:none;max-width:100%;padding:2px 0 8px}
+ .tabs::-webkit-scrollbar{display:none}
+ .tabs button{scroll-snap-align:start;min-height:44px}
+ .card{padding:12px}
+ .grid4{gap:10px}
+ .grid4 .stat{padding:12px}
+ .bars{gap:5px}
+ .card:has(.bars)>div:last-child{gap:2px!important;font-size:11px!important}
+ #tab-prod>div:first-child>div[style*="display:grid"]{grid-template-columns:minmax(0,1fr)}
+ #npColors{gap:8px!important}
+ #npColors label{display:flex;align-items:center;min-height:44px;gap:6px}
+ #npColors input,#loginView input[type="checkbox"]{width:20px;height:20px;margin:0;flex:0 0 auto}
+ input,select,textarea{font-size:16px}
+ .btn{width:100%;min-height:44px;padding:13px}
+ .btn2{min-height:44px}
+ .card:has(table){overflow:hidden}
+ table,tbody{display:block;width:100%;max-width:100%}
+ thead{display:none}
+ tbody tr{display:block;width:100%;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
+ tbody td{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;width:100%;padding:7px 0;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
+ tbody td:last-child{border-bottom:0}
+ tbody td::before{content:attr(data-label);font-weight:700;color:var(--muted);flex:0 0 38%;max-width:38%}
+ tbody td>*{max-width:62%}
+ tbody .pill,tbody .btn2{width:100%;min-height:44px;white-space:normal}
+}
+</style></head>
+<body><div class="wrap">
+<div id="loginView" class="card" style="max-width:420px;margin:40px auto"><h1>Admin Selara Tumbler</h1><p style="color:var(--muted)">Masuk untuk mengelola toko.</p><label>Username<input id="u" type="email" autocomplete="username"></label><label>Password<input id="p" type="password" autocomplete="current-password"><span style="font-weight:400"><input type="checkbox" style="width:auto" onclick="document.getElementById('p').type=this.checked?'text':'password'"> Tampilkan</span></label><p id="loginErr" style="color:#c00;display:none">Username / password salah.</p><button class="btn" style="width:100%;margin-top:12px" onclick="login()">Masuk</button><p style="font-size:12px;color:var(--muted)">Masuk menggunakan akun admin Supabase.</p></div>
+<div id="adminView" class="hidden">
+<div style="display:flex;justify-content:space-between;align-items:center"><h1>Panel Admin</h1><div><a href="index.html" class="btn2">Lihat Toko</a> <button class="btn2" onclick="logout()">Keluar</button></div></div>
+<div class="tabs"><button class="active" onclick="atab('dash',this)">Dashboard</button><button onclick="atab('prod',this)">Produk</button><button onclick="atab('order',this)">Pesanan</button><button onclick="atab('manual',this)">Input Order Manual</button><button onclick="atab('set',this)">Pengaturan</button></div>
+<div id="tab-dash"><div class="grid4"><div class="card stat"><span>Total Order</span><b id="sTotal">12</b></div><div class="card stat"><span>Estimasi Profit</span><b id="sProfit">Rp 640.000</b></div><div class="card stat"><span>Belum Dibelanjakan</span><b>5</b></div><div class="card stat"><span>Selesai</span><b>7</b></div></div>
+<div class="card"><b>Pesanan 7 Hari Terakhir</b><div class="bars"><div style="height:30%"></div><div style="height:55%"></div><div style="height:40%"></div><div style="height:80%"></div><div style="height:60%"></div><div style="height:95%"></div><div style="height:70%"></div></div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted)"><span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span><span>Min</span></div></div>
+<div class="card"><b>Pesanan Terbaru</b><table><thead><tr><th>Pembeli</th><th>Produk</th><th>Total</th><th>Status</th></tr></thead><tbody id="orderBody"></tbody></table></div>
+<div class="card grey"><b>Fase 2 — Coming Soon</b><p style="color:var(--muted)">Supplier Management • Shopping List Otomatis • Laporan Profit Lengkap — jangan dibangun dulu sebelum Fase 1 ACC.</p></div></div>
+<div id="tab-prod" class="hidden"><div class="card"><b>Tambah Produk</b><div style="display:grid;gap:10px;margin-top:10px"><label>Nama Produk<input id="npName" placeholder="Contoh: Aurora Tumbler 750ml"></label><label>Kategori<select id="npCat"><option>Tumbler</option><option>Tempat Makan</option></select></label><label>Harga Jual (Rp)<input id="npPrice" type="number" placeholder="150000"></label><label>Harga Modal — PRIVATE, hanya admin<input id="npCost" type="number" placeholder="95000"></label><label>Ukuran (pisah koma)<input id="npSizes" value="500ml, 750ml"></label><label>Warna (centang yang tersedia)</label><div id="npColors" style="display:flex;gap:10px;flex-wrap:wrap"><label><input type="checkbox" value="Rose" checked> Rose</label><label><input type="checkbox" value="Blush Pink"> Blush Pink</label><label><input type="checkbox" value="Putih"> Putih</label><label><input type="checkbox" value="Sage"> Sage</label><label><input type="checkbox" value="Hitam"> Hitam</label><label><input type="checkbox" value="Cream"> Cream</label></div><label><input type="checkbox" id="npCustom" checked> Bisa Custom Nama (+Rp15.000)</label><label>Foto Produk<input type="file" id="npFile" accept="image/*"></label><button class="btn" onclick="addProduct()">Simpan Produk</button><p id="npMsg" style="color:var(--rose)"></p></div></div>
+<div class="card"><b>Daftar Produk</b><table><thead><tr><th>Nama</th><th>Kategori</th><th>Harga Jual</th><th>Harga Modal (PRIVATE)</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="prodBody"></tbody></table></div></div>
+<div id="tab-order" class="hidden"><div class="card"><b>Semua Pesanan</b><div style="margin:10px 0"><button class="btn2" onclick="filterOrder('Semua')">Semua</button> <button class="btn2" onclick="filterOrder('Menunggu Konfirmasi')">Menunggu</button> <button class="btn2" onclick="filterOrder('Dibelanjakan')">Dibelanjakan</button> <button class="btn2" onclick="filterOrder('Barang Datang')">Barang Datang</button> <button class="btn2" onclick="filterOrder('Selesai')">Selesai</button></div><table><thead><tr><th>Pembeli</th><th>Produk</th><th>Total</th><th>Status</th></tr></thead><tbody id="orderBody2"></tbody></table></div></div>
+<div id="tab-manual" class="hidden"><div class="card"><b>Input Order Manual</b><p style="color:var(--muted)">Untuk pesanan yang masuk via chat. Isi lalu Simpan Order.</p><label>Nama Pembeli<input id="moName" placeholder="Nama pembeli"></label><label>Pilih Produk<select id="moProd"></select></label><label>Warna<input id="moColor" placeholder="Rose"></label><label>Ukuran<input id="moSize" placeholder="750ml"></label><label>Qty<input id="moQty" type="number" value="1"></label><label>Custom Nama (opsional)<input id="moCustom" placeholder="Kosongkan jika tidak custom"></label><button class="btn" style="margin-top:12px" onclick="addManualOrder()">Simpan Order</button><p id="moMsg" style="color:var(--rose)"></p></div></div>
+<div id="tab-set" class="hidden"><div class="card"><b>Pengaturan</b><label>Nama Toko<input value="Selara Tumbler"></label><label>Biaya Custom Nama Default (Rp)<input type="number" value="15000"></label><label>Catatan Admin<textarea rows="3" placeholder="Catatan internal..."></textarea></label><button class="btn" style="margin-top:12px" onclick="alert('Pengaturan tersimpan (demo). Codex: simpan ke tabel settings di Supabase.')">Simpan Pengaturan</button><p style="font-size:12px;color:var(--muted)">Nomor WA Admin diatur via ENV (WA_NUMBER), tidak ditampilkan di UI.</p></div></div>
+</div></div>
+
+<script src="runtime-config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>const CONFIG=window.SELARA_CONFIG||{};const supabase=window.supabase.createClient(CONFIG.supabaseUrl,CONFIG.supabaseAnonKey);let orders=[],products=[],ofilter="Semua";const STS=["Menunggu Konfirmasi","Dibelanjakan","Barang Datang","Selesai"];
+async function login(){document.getElementById("loginErr").style.display="none";const {error}=await supabase.auth.signInWithPassword({email:document.getElementById("u").value.trim(),password:document.getElementById("p").value});if(error){document.getElementById("loginErr").style.display="block";return}await enterAdmin()}
+async function enterAdmin(){const {data:{user}}=await supabase.auth.getUser();if(!user)return;const {data:admin,error}=await supabase.rpc("current_user_is_admin");if(error||admin!==true){await supabase.auth.signOut();document.getElementById("loginErr").style.display="block";return}document.getElementById("loginView").classList.add("hidden");document.getElementById("adminView").classList.remove("hidden");await renderAll()}
+async function logout(){await supabase.auth.signOut();document.getElementById("adminView").classList.add("hidden");document.getElementById("loginView").classList.remove("hidden")}
+function atab(id,el){["dash","prod","order","manual","set"].forEach(x=>document.getElementById("tab-"+x).classList.toggle("hidden",x!==id));document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));el.classList.add("active")}
+async function cycleStatus(i){const o=orders[i],status=STS[(STS.indexOf(o.status)+1)%STS.length],{error}=await supabase.from("orders").update({status}).eq("id",o.id);if(error)return alert(error.message);await renderAll()}
+function renderOrders(){const rows=o=>o.map(x=>`<tr><td data-label="Pembeli">${x.name}</td><td data-label="Produk">${x.prod}</td><td data-label="Total">Rp ${Number(x.total).toLocaleString("id-ID")}</td><td data-label="Status"><button class="pill" onclick="cycleStatus(${orders.indexOf(x)})">${x.status} &rarr;</button></td></tr>`).join("");document.getElementById("orderBody").innerHTML=rows(orders.slice(0,4));const f=ofilter==="Semua"?orders:orders.filter(x=>x.status===ofilter);document.getElementById("orderBody2").innerHTML=rows(f);document.getElementById("sTotal").textContent=orders.length;document.getElementById("sProfit").textContent="Rp "+orders.reduce((sum,o)=>sum+o.items.reduce((a,i)=>a+(Number(i.price)-Number(i.cost_price||0))*Number(i.qty),0),0).toLocaleString("id-ID");const stats=document.querySelectorAll("#tab-dash .stat b");stats[2].textContent=orders.filter(o=>o.status==="Menunggu Konfirmasi").length;stats[3].textContent=orders.filter(o=>o.status==="Selesai").length}
+async function renderProducts(){const {data,error}=await supabase.from("products").select("id,name,category_id,category:categories(name),price,cost_price,is_active").order("created_at");if(error){console.error(error);return}products=data;document.getElementById("prodBody").innerHTML=products.map((p,i)=>`<tr><td data-label="Nama">${p.name}</td><td data-label="Kategori">${p.category.name}</td><td data-label="Harga Jual">Rp ${p.price.toLocaleString("id-ID")}</td><td data-label="Harga Modal (PRIVATE)">Rp ${p.cost_price.toLocaleString("id-ID")} <small>(PRIVATE)</small></td><td data-label="Status">${p.is_active?"Aktif":"Nonaktif"}</td><td data-label="Aksi"><button class="btn2" onclick="toggleProduct(${i})">${p.is_active?"Nonaktifkan":"Aktifkan"}</button></td></tr>`).join("");document.getElementById("moProd").innerHTML=products.filter(p=>p.is_active).map(p=>`<option value="${p.id}">${p.name}</option>`).join("")}
+async function toggleProduct(i){const p=products[i],{error}=await supabase.from("products").update({is_active:!p.is_active}).eq("id",p.id);if(error)return alert(error.message);await renderProducts()}
+async function addProduct(){const n=document.getElementById("npName").value.trim();if(!n)return alert("Isi nama produk dulu");const {data:category,error:catError}=await supabase.from("categories").select("id").eq("name",document.getElementById("npCat").value).single();if(catError)return alert(catError.message);const file=document.getElementById("npFile").files[0];let image_url=null;if(file){const path=`${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,"_")}`;const {error}=await supabase.storage.from("product-images").upload(path,file);if(error)return alert(error.message);image_url=supabase.storage.from("product-images").getPublicUrl(path).data.publicUrl}const colors=[...document.querySelectorAll("#npColors input:checked")].map(x=>x.value);const {error}=await supabase.from("products").insert({name:n,category_id:category.id,price:Number(document.getElementById("npPrice").value||0),cost_price:Number(document.getElementById("npCost").value||0),sizes:document.getElementById("npSizes").value.split(",").map(x=>x.trim()).filter(Boolean),colors,can_custom:document.getElementById("npCustom").checked,image_url});if(error)return alert(error.message);document.getElementById("npMsg").textContent="Produk tersimpan.";await renderProducts()}
+async function addManualOrder(){const name=document.getElementById("moName").value.trim();if(!name)return alert("Isi nama pembeli dulu");const product=products.find(p=>p.id===document.getElementById("moProd").value);if(!product)return;const qty=Math.max(1,Number(document.getElementById("moQty").value||1)),customName=document.getElementById("moCustom").value.trim(),fee=customName?15000:0;const {data:order,error}=await supabase.from("orders").insert({buyer_name:name,total:(product.price+fee)*qty,source:"Manual"}).select("id").single();if(error)return alert(error.message);const {error:itemError}=await supabase.from("order_items").insert({order_id:order.id,product_id:product.id,product_name:product.name,color:document.getElementById("moColor").value,size:document.getElementById("moSize").value,qty,price:product.price,cost_price:product.cost_price,custom_name:customName||null,custom_fee:fee,subtotal:(product.price+fee)*qty});if(itemError)return alert(itemError.message);document.getElementById("moMsg").textContent="Order tersimpan.";await renderAll()}
+function filterOrder(s){ofilter=s;renderOrders()}
+async function renderAll(){const [{data:os,error:oe},{data:items,error:ie}]=await Promise.all([supabase.from("orders").select("id,buyer_name,total,status,created_at").order("created_at",{ascending:false}),supabase.from("order_items").select("order_id,product_name,price,cost_price,qty")]);if(oe||ie){console.error(oe||ie);return}orders=os.map(o=>{const orderItems=items.filter(i=>i.order_id===o.id);return{...o,name:o.buyer_name||"�",prod:orderItems.map(i=>i.product_name).join(", ")||"�",items:orderItems}});await renderProducts();renderOrders()}
+supabase.auth.getSession().then(({data})=>{if(data.session)enterAdmin()});
+</script></body></html>
+
