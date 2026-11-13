@@ -199,10 +199,7 @@ function initSupabase(){
     showDebug("<b>Config Supabase tidak terbaca.</b><br>window.SELARA_CONFIG = " + JSON.stringify(window.SELARA_CONFIG||null) + "<br>window.__SELARA_CONFIG__ = " + JSON.stringify(window.__SELARA_CONFIG__||null) + "<br>Cek file /runtime-config.js sudah ter-deploy.");
     return null;
   }
-  if(!window.supabase){
-    showDebug("<b>Supabase JS CDN belum termuat.</b> Cek koneksi / CDN jsdelivr.");
-    return null;
-  }
+
   try{
     supabaseClient = window.supabase.createClient(cfg.url, cfg.key);
     return supabaseClient;
@@ -229,17 +226,17 @@ async function doLogin(){
   var email = document.getElementById("loginEmail").value.trim();
   var password = document.getElementById("loginPass").value;
   if(!email || !password){ document.getElementById("loginLoading").style.display = "none"; showLoginError("Isi email dan password dulu."); return; }
-  var sb = initSupabase();
-  if(!sb){ document.getElementById("loginLoading").style.display = "none"; showLoginError("Konfigurasi Supabase belum terbaca. Lihat kotak kuning di atas."); return; }
+  initSupabase();
+  if(!supabaseClient){ document.getElementById("loginLoading").style.display = "none"; showLoginError("Konfigurasi Supabase belum terbaca. Lihat kotak kuning di atas."); return; }
   try{
-    var res = await sb.auth.signInWithPassword({ email: email, password: password });
+    var res = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
     if(res.error) throw res.error;
     var user = res.data && res.data.user;
     if(!user) throw new Error("Login gagal - tidak ada user dari Supabase.");
     // FIX: Jangan blokir login karena cek admin_users / RLS.
     // Siapa pun yang email+password-nya bener di Supabase Auth boleh masuk.
     // Cek admin_users hanya untuk info, gagal pun tetap masuk.
-    sb.from("admin_users").select("user_id").eq("user_id", user.id).maybeSingle()
+    supabaseClient.from("admin_users").select("user_id").eq("user_id", user.id).maybeSingle()
       .then(function(rowRes){ console.log("cek admin_users:", rowRes); })
       .catch(function(e){ console.warn("cek admin_users diabaikan:", e); });
     document.getElementById("loginLoading").style.display = "none";
@@ -271,18 +268,18 @@ function atab(id, el){
   if(el) el.classList.add("active");
 }
 async function loadAll(){
-  var sb = supabaseClient || initSupabase();
-  if(!sb){ document.getElementById("dashNote").textContent = "Konfigurasi Supabase belum terbaca."; return; }
+  if(!supabaseClient)initSupabase();
+  if(!supabaseClient){ document.getElementById("dashNote").textContent = "Konfigurasi Supabase belum terbaca."; return; }
   try{
-    var pRes = await sb.from("products").select("*").order("created_at", { ascending: false });
+    var pRes = await supabaseClient.from("products").select("*").order("created_at", { ascending: false });
     if(pRes.error) throw pRes.error;
     products = pRes.data || [];
   }catch(e){
     console.warn("load products gagal, coba products_public", e);
-    try{ var p2 = await sb.from("products_public").select("*").order("created_at", { ascending: false }); products = p2.data || []; }catch(_){ products = []; }
+    try{ var p2 = await supabaseClient.from("products_public").select("*").order("created_at", { ascending: false }); products = p2.data || []; }catch(_){ products = []; }
   }
   try{
-    var oRes = await sb.from("orders").select("*, order_items(*)").order("created_at", { ascending: false });
+    var oRes = await supabaseClient.from("orders").select("*, order_items(*)").order("created_at", { ascending: false });
     if(oRes.error) throw oRes.error;
     orders = (oRes.data||[]).map(function(x){
       return { id: x.id, name: x.buyer_name || "-", prod: (x.order_items && x.order_items.length ? x.order_items.map(function(i){ return i.product_name; }).join(", ") : "-"), total: x.total || 0, status: x.status || "Menunggu Konfirmasi", raw: x };
@@ -324,8 +321,8 @@ async function cycleStatus(id){
   var o = orders.find(function(x){ return String(x.id)===String(id); });
   if(!o) return;
   var next = STS[(STS.indexOf(o.status)+1)%STS.length];
-  var sb = supabaseClient;
-  if(sb){ try{ await sb.from("orders").update({ status: next }).eq("id", id); }catch(e){ console.warn(e); } }
+  
+  if(supabaseClient){ try{ await supabaseClient.from("orders").update({ status: next }).eq("id", id); }catch(e){ console.warn(e); } }
   o.status = next;
   renderAll();
 }
@@ -340,8 +337,8 @@ function renderProducts(){
 async function toggleProduct(i){
   var p = products[i]; if(!p) return;
   var newVal = p.is_active===false ? true : false;
-  var sb = supabaseClient;
-  if(sb && p.id){ try{ await sb.from("products").update({ is_active: newVal }).eq("id", p.id); }catch(e){ console.warn(e); } }
+  
+  if(supabaseClient && p.id){ try{ await supabaseClient.from("products").update({ is_active: newVal }).eq("id", p.id); }catch(e){ console.warn(e); } }
   p.is_active = newVal;
   renderProducts();
 }
@@ -355,21 +352,21 @@ async function addProduct(){
   var colors = document.getElementById("npColors").value.split(",").map(function(s){ return s.trim(); }).filter(Boolean);
   var canCustom = document.getElementById("npCustom").checked;
   var file = document.getElementById("npFile").files[0];
-  var sb = supabaseClient;
-  if(!sb){ alert("Supabase belum terhubung"); return; }
+  
+  if(!supabaseClient){ alert("Supabase belum terhubung"); return; }
   document.getElementById("npMsg").textContent = "Menyimpan...";
   try{
     var catId = null;
-    try{ var cats = await sb.from("categories").select("id,name,slug").ilike("name", catName); if(cats.data && cats.data.length) catId = cats.data[0].id; }catch(e){}
+    try{ var cats = await supabaseClient.from("categories").select("id,name,slug").ilike("name", catName); if(cats.data && cats.data.length) catId = cats.data[0].id; }catch(e){}
     var imageUrl = "";
     if(file){
       var fileName = Date.now() + "-" + file.name.replace(/\s+/g,"-");
-      var up = await sb.storage.from("product-images").upload(fileName, file);
+      var up = await supabaseClient.storage.from("product-images").upload(fileName, file);
       if(up.error) throw up.error;
-      var pub = sb.storage.from("product-images").getPublicUrl(fileName);
+      var pub = supabaseClient.storage.from("product-images").getPublicUrl(fileName);
       imageUrl = pub.data.publicUrl;
     }
-    var ins = await sb.from("products").insert({ name: name, category_id: catId, description: "Desain elegan, nyaman dibawa setiap hari.", price: price, cost_price: cost, sizes: sizes, colors: colors, can_custom: canCustom, custom_fee: 15000, image_url: imageUrl, is_active: true });
+    var ins = await supabaseClient.from("products").insert({ name: name, category_id: catId, description: "Desain elegan, nyaman dibawa setiap hari.", price: price, cost_price: cost, sizes: sizes, colors: colors, can_custom: canCustom, custom_fee: 15000, image_url: imageUrl, is_active: true });
     if(ins.error) throw ins.error;
     document.getElementById("npMsg").textContent = "Produk tersimpan ke Supabase.";
     document.getElementById("npName").value = "";
@@ -385,15 +382,15 @@ async function addManualOrder(){
   var size = document.getElementById("moSize").value.trim();
   var qty = Number(document.getElementById("moQty").value||1);
   var custom = document.getElementById("moCustom").value.trim();
-  var sb = supabaseClient;
-  if(!sb){ alert("Supabase belum terhubung"); return; }
+  
+  if(!supabaseClient){ alert("Supabase belum terhubung"); return; }
   document.getElementById("moMsg").textContent = "Menyimpan...";
   try{
     var fee = custom ? 15000 : 0;
     var total = ((prod?Number(prod.price||0):0) + fee) * qty;
-    var ord = await sb.from("orders").insert({ buyer_name: name, status: "Menunggu Konfirmasi", total: total, source: "Manual" }).select().single();
+    var ord = await supabaseClient.from("orders").insert({ buyer_name: name, status: "Menunggu Konfirmasi", total: total, source: "Manual" }).select().single();
     if(ord.error) throw ord.error;
-    var it = await sb.from("order_items").insert({ order_id: ord.data.id, product_id: prod?prod.id:null, product_name: prod?prod.name:"-", color: color, size: size, qty: qty, price: prod?Number(prod.price||0):0, custom_name: custom||null, custom_fee: fee, subtotal: total });
+    var it = await supabaseClient.from("order_items").insert({ order_id: ord.data.id, product_id: prod?prod.id:null, product_name: prod?prod.name:"-", color: color, size: size, qty: qty, price: prod?Number(prod.price||0):0, custom_name: custom||null, custom_fee: fee, subtotal: total });
     if(it.error) throw it.error;
     document.getElementById("moMsg").textContent = "Order tersimpan ke Supabase.";
     await loadAll();
@@ -403,12 +400,12 @@ function filterOrder(s){ ofilter = s; renderOrders(); }
 function renderAll(){ renderStats(); renderOrders(); renderProducts(); }
 // Saat load: JANGAN pernah blank. Kalau config gagal, tampilkan kotak kuning. Kalau session admin ada, langsung masuk.
 (function(){
-  var sb = initSupabase();
-  if(!sb) return;
-  sb.auth.getSession().then(function(res){
+  initSupabase();
+  if(!supabaseClient) return;
+  supabaseClient.auth.getSession().then(function(res){
     var sess = res.data && res.data.session;
     if(!sess) return;
-    sb.from("admin_users").select("user_id").eq("user_id", sess.user.id).maybeSingle().then(function(r){
+    supabaseClient.from("admin_users").select("user_id").eq("user_id", sess.user.id).maybeSingle().then(function(r){
       if(true){ // session valid = langsung masuk, jangan blokir karena admin_users
         document.getElementById("loginView").classList.add("hidden");
         document.getElementById("adminView").classList.remove("hidden");
