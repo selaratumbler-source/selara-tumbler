@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Kelola Produk - Selara Admin</title>
+<style>
+:root{--rose:#9d174d;--magenta:#db2777;--pink:#fbcfe8;--blush:#fdf2f8;--ink:#1f1a1c;--muted:#7a6068;--line:#f3d1e3;--white:#fff;--radius:16px;--font:'-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif'}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:#eef1f5;color:var(--ink);display:flex;justify-content:center;min-height:100vh}
+.app{width:100%;max-width:420px;background:#f8f9fb;min-height:100vh;position:relative;padding-bottom:80px;box-shadow:0 0 30px rgba(0,0,0,.1);overflow-x:hidden}
+h1,h2,h3{font-family:Georgia,serif;font-weight:400}
+button{font:inherit;cursor:pointer;border:none;background:none}
+
+/* HEADER */
+.header{display:flex;align-items:center;gap:12px;padding:16px 20px;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}
+.back-btn{width:34px;height:34px;border-radius:10px;background:var(--blush);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--ink);text-decoration:none}
+.header-title{font-size:16px;font-weight:700}
+
+/* SEARCH & ADD BUTTON */
+.actions{display:flex;gap:10px;padding:16px 20px}
+.search-box{flex:1;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-size:12.5px;outline:none}
+.btn-add{background:var(--rose);color:#fff;padding:0 16px;border-radius:10px;font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px}
+
+/* PRODUCT LIST */
+.list{padding:0 20px}
+.p-card{background:#fff;border-radius:14px;padding:12px;margin-bottom:10px;border:1px solid var(--line);display:flex;gap:12px;align-items:center}
+.p-img{width:60px;height:60px;border-radius:10px;background:var(--blush);object-fit:cover}
+.p-info{flex:1}
+.p-name{font-size:13px;font-weight:800;margin-bottom:2px}
+.p-price{font-size:12px;font-weight:800;color:var(--rose)}
+.p-stats{font-size:10px;color:var(--muted);margin-top:4px}
+
+/* MODAL FORM */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:50;display:none;align-items:flex-end;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:#fff;width:100%;max-width:420px;border-radius:24px 24px 0 0;padding:20px;max-height:90vh;overflow-y:auto}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.modal-head h2{font-size:18px;font-weight:800}
+.close{font-size:20px;color:var(--muted)}
+
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:11.5px;font-weight:700;margin-bottom:6px;color:var(--ink)}
+.form-input{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;font-size:13px;outline:none}
+.form-input:focus{border-color:var(--magenta)}
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+.btn-save{width:100%;padding:14px;background:var(--magenta);color:#fff;border-radius:12px;font-weight:800;font-size:14px;margin-top:10px}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;width:100%;max-width:420px;background:#fff;border-top:1px solid var(--line);display:flex;padding:10px 0 14px;z-index:20}
+.nav-item{flex:1;text-align:center;font-size:9.5px;color:var(--muted);font-weight:600;text-decoration:none}
+.nav-item.active{color:var(--rose);font-weight:800}
+.nav-item .ico{font-size:18px;display:block;margin-bottom:4px}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <a href="Admin.html" class="back-btn">←</a>
+    <div class="header-title">Kelola Produk</div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="actions">
+    <input type="text" class="search-box" placeholder="Cari produk...">
+    <button class="btn-add" onclick="openModal()">＋ Tambah</button>
+  </div>
+
+  <!-- LIST PRODUK -->
+  <div class="list" id="productList">
+    <div style="text-align:center; padding:30px; color:var(--muted); font-size:12px;">
+      Memuat produk dari database...
+    </div>
+  </div>
+
+  <!-- MODAL FORM TAMBAH PRODUK -->
+  <div class="overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-head">
+        <h2>Tambah Produk</h2>
+        <button class="close" onclick="closeModal()">✕</button>
+      </div>
+
+      <form id="productForm">
+        <div class="form-group">
+          <label class="form-label">Nama Produk *</label>
+          <input type="text" class="form-input" id="pName" placeholder="cth: Selara Blush" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Kategori *</label>
+          <select class="form-input" id="pCategory" required>
+            <option value="">Pilih Kategori</option>
+            <option value="Tumbler">Tumbler</option>
+            <option value="Tempat Makan">Tempat Makan</option>
+          </select>
+        </div>
+
+        <div class="row-2">
+          <div class="form-group">
+            <label class="form-label">Harga Jual *</label>
+            <input type="number" class="form-input" id="pPrice" placeholder="85000" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Harga Modal *</label>
+            <input type="number" class="form-input" id="pCost" placeholder="55000" required>
+          </div>
+        </div>
+
+        <div class="form-group" style="display:flex; justify-content:space-between; align-items:center; background:var(--blush); padding:12px; border-radius:10px; border:1px solid var(--line);">
+          <div>
+            <label class="form-label" style="margin:0;">Bisa Custom Nama</label>
+            <div style="font-size:10px; color:var(--muted); margin-top:2px;">+Rp15.000 per item</div>
+          </div>
+          <input type="checkbox" id="pCustom" style="width:20px; height:20px; accent-color:var(--magenta);">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Deskripsi</label>
+          <textarea class="form-input" id="pDesc" rows="3" placeholder="Bahan, kapasitas, dll..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">URL Foto Produk (Opsional)</label>
+          <input type="url" class="form-input" id="pImage" placeholder="https://...">
+        </div>
+
+        <button type="submit" class="btn-save">Simpan Produk</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <a href="Admin.html" class="nav-item"><span class="ico">📊</span>Dashboard</a>
+    <a href="#" class="nav-item"><span class="ico">📋</span>Order</a>
+    <a href="#" class="nav-item active"><span class="ico">🛍️</span>Produk</a>
+    <a href="#" class="nav-item"><span class="ico">💰</span>Profit</a>
+  </div>
+
+</div>
+
+<script src="/runtime-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // ===== KONFIGURASI SUPABASE =====
+  function getConfig(){
+    var c1=window.SELARA_CONFIG||null;var c2=window.__SELARA_CONFIG__||window.SELARA_CONFIG__||null;var c=c1||c2||{};
+    return {url:c.supabaseUrl||c.SUPABASE_URL||c.supabase_url||"",key:c.supabaseAnonKey||c.SUPABASE_ANON_KEY||c.supabase_anon_key||c.anonKey||""};
+  }
+  const CONFIG = getConfig();
+  let supabaseClient = null;
+
+  if (CONFIG.url && CONFIG.key) {
+    supabaseClient = window.supabase.createClient(CONFIG.url, CONFIG.key);
+  }
+
+  const fmt = (n) => 'Rp ' + Number(n).toLocaleString('id-ID');
+
+  // ===== FUNGSI AMBIL PRODUK =====
+  async function loadProducts() {
+    const listEl = document.getElementById('productList');
+    if (!supabaseClient) {
+      listEl.innerHTML = '<div style="text-align:center; padding:20px; color:red; font-size:12px;">Gagal konek Supabase. Cek runtime-config.js</div>';
+      return;
+    }
+
+    try {
+      const { data, error } = await supabaseClient
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        listEl.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted); font-size:12px;">Belum ada produk. Klik Tambah untuk mulai.</div>';
+        return;
+      }
+
+      listEl.innerHTML = data.map(p => `
+        <div class="p-card">
+          <img src="${p.image_url || 'https://via.placeholder.com/60x60/fbcfe8/9d174d?text=Foto'}" class="p-img" alt="${p.name}">
+          <div class="p-info">
+            <div class="p-name">${p.name}</div>
+            <div class="p-price">${fmt(p.price)}</div>
+            <div class="p-stats">${p.category_name || 'Tanpa Kategori'}</div>
+          </div>
+        </div>
+      `).join('');
+
+    } catch (err) {
+      console.error(err);
+      listEl.innerHTML = `<div style="text-align:center; padding:20px; color:red; font-size:12px;">Error: ${err.message}</div>`;
+    }
+  }
+
+  // ===== FUNGSI SIMPAN PRODUK =====
+  document.getElementById('productForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!supabaseClient) return alert('Supabase belum terhubung!');
+
+    const btn = e.target.querySelector('.btn-save');
+    btn.innerText = 'Menyimpan...';
+    btn.disabled = true;
+
+    const newProduct = {
+      name: document.getElementById('pName').value,
+      category_name: document.getElementById('pCategory').value,
+      price: Number(document.getElementById('pPrice').value),
+      cost_price: Number(document.getElementById('pCost').value),
+      allow_custom: document.getElementById('pCustom').checked,
+      description: document.getElementById('pDesc').value,
+      image_url: document.getElementById('pImage').value || null
+    };
+
+    try {
+      const { error } = await supabaseClient.from('products').insert([newProduct]);
+      if (error) throw error;
+
+      alert('Produk berhasil ditambahkan!');
+      document.getElementById('productForm').reset();
+      closeModal();
+      loadProducts(); // Refresh list
+
+    } catch (err) {
+      console.error(err);
+      alert('Gagal menyimpan: ' + err.message);
+    } finally {
+      btn.innerText = 'Simpan Produk';
+      btn.disabled = false;
+    }
+  });
+
+  function openModal() { document.getElementById('modalOverlay').classList.add('open'); }
+  function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+
+  // Init
+  loadProducts();
+</script>
+</body>
+</html>
